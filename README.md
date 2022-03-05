@@ -43,7 +43,7 @@ class WebServer : public WebServerHttps {
 
 ### And cpp files
 
-```
+```cpp
 #include "webserver.hpp"
 #include <fstream>
 #include <curl/curl.h>
