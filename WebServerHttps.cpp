@@ -15,9 +15,9 @@ void WebServerHttps::config_server(int port, std::string cert_file, std::string 
 	/* SSL */
 	init_ssl();
 
-	ctx = SSL_CTX_new(TLS_server_method());
+	ctx.reset(SSL_CTX_new(TLS_server_method()));// = std::unique_ptr<SSL_CTX>(SSL_CTX_new(TLS_server_method()));
 
-	if (ctx == NULL) {
+	if (ctx.get() == NULL) {
 		std::cout << "SSL error" << std::endl;
 		exit(0);
 	}
@@ -27,20 +27,20 @@ void WebServerHttps::config_server(int port, std::string cert_file, std::string 
 
 int WebServerHttps::load_certificate(std::string certfile, std::string keyfile) {
 	/* set the local certificate from CertFile */
-	if ( SSL_CTX_use_certificate_file(ctx, certfile.c_str(), SSL_FILETYPE_PEM) <= 0 )
+	if ( SSL_CTX_use_certificate_file(ctx.get(), certfile.c_str(), SSL_FILETYPE_PEM) <= 0 )
 	{
 		ERR_print_errors_fp(stderr);
 		return -1;
 	}
 
 	/* set the private key from KeyFile (may be the same as CertFile) */
-	if ( SSL_CTX_use_PrivateKey_file(ctx, keyfile.c_str(), SSL_FILETYPE_PEM) <= 0 )
+	if ( SSL_CTX_use_PrivateKey_file(ctx.get(), keyfile.c_str(), SSL_FILETYPE_PEM) <= 0 )
 	{
 		ERR_print_errors_fp(stderr);
 		return -1;
 	}
 	/* verify private key */
-	if ( !SSL_CTX_check_private_key(ctx) )
+	if ( !SSL_CTX_check_private_key(ctx.get()) )
 	{
 		std::cout << "Private key does not match the public certificate" << std::endl;
 		return -1;
@@ -50,19 +50,20 @@ int WebServerHttps::load_certificate(std::string certfile, std::string keyfile) 
 }
 
 void WebServerHttps::new_http_request(int port) {
-	SSL *cSSL = SSL_new(ctx);
-	SSL_set_fd(cSSL, port);
+	//SSL *cSSL = SSL_new(ctx.get());
+	auto cSSL = std::unique_ptr<SSL, SslDeleter>(SSL_new(ctx.get()));
+	SSL_set_fd(cSSL.get(), port);
 	
 	std::string content { "!:" };
 
 
-	if (SSL_accept(cSSL) == 0) {
+	if (SSL_accept(cSSL.get()) == 0) {
 		ERR_print_errors_fp(stderr);
 	} else {
 
 		char buffer[1024] = {0};
 		//int valread = read( port, buffer, 1024);
-		int valread = SSL_read( cSSL, buffer, 1024);
+		int valread = SSL_read( cSSL.get(), buffer, 1024);
 		std::vector<std::string> value;
 
 		if (valread == -1) {
@@ -96,11 +97,11 @@ void WebServerHttps::new_http_request(int port) {
 				std::to_string(content.size()) + "\r\n" + content_type(value[1]) + "\r\n" + content;
 			}
 
-			SSL_write(cSSL, rep.c_str(), rep.size());
+			SSL_write(cSSL.get(), rep.c_str(), rep.size());
 		}
 	}
 	
-	SSL_free(cSSL);
+	//SSL_free(cSSL);
 
 	return;
 }
@@ -127,4 +128,5 @@ std::string WebServerHttps::getContent(std::string &url, std::string &type, char
 }
 
 
-WebServerHttps::~WebServerHttps() {}
+WebServerHttps::~WebServerHttps() {
+}

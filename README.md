@@ -93,3 +93,12 @@ int main() {
 	return 0;
 }
 ```
+
+### How to compile it ?
+
+To compile, you just need link with ```lTWebServer``` and filesystem.
+
+Example:
+```bash
+g++ main.cpp webserver.cpp -o -stdc++fs -lTWebServer -lstdc++fs
+```

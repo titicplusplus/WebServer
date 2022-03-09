@@ -5,6 +5,19 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+struct SslDeleter {
+    void operator()(SSL *_p)
+    {
+        //SSL_shutdown(_p);
+        SSL_free(_p);
+    }
+
+    void operator()(SSL_CTX *_p)
+    {
+        SSL_CTX_free(_p);
+    }
+};
+
 class WebServerHttps : public WebServerHttp {
 	public:
 		/// @brief Construct WebServer Object (init polling_js and error 404)
@@ -52,6 +65,6 @@ class WebServerHttps : public WebServerHttp {
 		/// @return void
 		virtual void stop(int signal);
 	private:
-		SSL_CTX *ctx;
+		std::unique_ptr<SSL_CTX, SslDeleter> ctx;
 		std::string redirectUrl;
 };
