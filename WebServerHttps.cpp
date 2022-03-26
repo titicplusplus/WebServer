@@ -4,7 +4,6 @@
 #include <openssl/err.h>
 #include <openssl/crypto.h>
 #include <mutex>
-#include <icecream.hpp>
 
 std::mutex WebServerHttps::sslSecure;
 
@@ -112,11 +111,8 @@ void WebServerHttps::new_http_request(int port, const std::string ipClient) {
 			}
 
 			std::unique_lock<std::mutex> sslLck {sslSecure};
-			IC(port);
 
-			IC();
 			SSL_write(cSSL.get(), rep.c_str(), rep.size());
-			IC();
 
 			sslLck.unlock();
 		}
