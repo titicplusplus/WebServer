@@ -6,22 +6,27 @@ add_library(TWebServer SHARED
 	WebServerHttp.hpp
 	WebServerHttps.cpp
 	WebServerHttps.hpp
+	LogFile.cpp
+	LogFile.hpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
-#set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER WebServerHttps.hpp)
-##set_target_properties(${PROJECT_NAME} PROPERTIES HEADERS WebServerHttp.hpp)
+
 target_link_libraries(
 	${PROJECT_NAME}
 	ssl
 	crypto
 )
 
+set(CMAKE_CXX_STANDARD 17)
+target_compile_features(TWebServer PRIVATE cxx_std_20)
+
 set(public_headers
 	WebServerHttp.hpp
 	WebServerHttps.hpp
-	)
+	LogFile.hpp
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")
 
@@ -31,5 +36,5 @@ include(GNUInstallDirs)
 # Set library shared object and API header file to install.
 install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/TWebServer/
 )

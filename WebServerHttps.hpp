@@ -32,7 +32,7 @@ class WebServerHttps : public WebServerHttp {
 		/// @param cert_file the certificate file
 		/// @parma key_file the key file
 		/// @return void
-		virtual void config_server(int port, std::string cert_file, std::string key_file);
+		virtual void config_server(int port, std::string cert_file, std::string key_file, int nbr_thread = -1, std::string file_name = "");
 
 		/// @brief Setup the ssl files
 		/// @param cert_file the certificate file
@@ -43,7 +43,7 @@ class WebServerHttps : public WebServerHttp {
 		/// @brief a classic http request answer
 		/// @param the port of user
 		/// @return void
-		virtual void new_http_request(int port);
+		virtual void new_http_request(int port, const std::string ipClient);
 
 		/// @brief get classic answer
 		/// @param url the url
@@ -67,4 +67,7 @@ class WebServerHttps : public WebServerHttp {
 	private:
 		std::unique_ptr<SSL_CTX, SslDeleter> ctx;
 		std::string redirectUrl;
+
+
+		static std::mutex sslSecure;
 };
