@@ -21,6 +21,8 @@
 #  endif
 #endif
 
+#define BUFFER_SIZE 10240
+
 
 std::unordered_map<std::string, std::unique_ptr<std::mutex>> WebServerHttp::fileRead;
 
@@ -58,7 +60,7 @@ void WebServerHttp::config_server(int port, int nbr_thread, std::string file_nam
 	fileRead.insert(std::make_pair("locker", std::make_unique<std::mutex>()));
 }
 
-void WebServerHttp::start() {
+void WebServerHttp::start(bool activeAsync = true) {
 	int new_socket;
 	is_alive = true;
 
@@ -88,27 +90,30 @@ void WebServerHttp::start() {
 		
 			//std::string ipClient = inet_ntoa(addr.sin_addr);
 			const std::string ipClient = inet_ntoa(addr.sin_addr);
-			std::async([this, new_socket, ipClient] {
+
+			if (activeAsync) {
+				std::async([this, new_socket, ipClient] {
+					try {
+						new_http_request(new_socket, ipClient);
+					} catch (const std::exception& e) {
+						std::cerr << "Error during answer process: " << e.what() << std::endl;
+					}
+				});
+			} else {
 				try {
 					new_http_request(new_socket, ipClient);
 				} catch (const std::exception& e) {
 					std::cerr << "Error during answer process: " << e.what() << std::endl;
 				}
-
-				/**std::this_thread::sleep_for(1000ms);
-
-
-				std::string rep = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
-				send( new_socket, rep.c_str(), rep.size(), 0 );**/
-			});
+			}
 		}
 	}
 }
 
 
 void WebServerHttp::new_http_request(int port, const std::string ipClient) {
-	char buffer[1024] = {0};
-	int valread = read(port, buffer, 1024);
+	char buffer[BUFFER_SIZE] = {0};
+	int valread = read(port, buffer, BUFFER_SIZE);
 
 	if (valread == -1)
 		return;
@@ -134,7 +139,7 @@ void WebServerHttp::new_http_request(int port, const std::string ipClient) {
 		}
 		logLck.unlock();
 
-		content = getContent(value[1], value[0], buffer, valread );//"<h1>Hello, world!</h1>";
+		content = getContent(value[1], value[0], buffer, valread, params);//"<h1>Hello, world!</h1>";
 
 	}
 
@@ -253,7 +258,7 @@ std::string WebServerHttp::get_content(char *buffer, size_t size) {
 	
 	for (size_t i = 0; i < size-4; i ++) {
 		if (buffer[i] == '\r' && buffer[i+1] == '\n' && buffer[i+2] == '\r' && buffer[i+3] == '\n') {
-			std::string content { buffer };
+			std::string content { buffer, size };
 			content = content.substr(i+4);
 			return content;
 		}
@@ -312,7 +317,7 @@ std::unordered_map<std::string, std::string> WebServerHttp::get_params(std::stri
 	return params;
 }
 
-std::string WebServerHttp::getContent(std::string &url, std::string &type, char *buffer, int bufferSize) {
+std::string WebServerHttp::getContent(std::string &url, std::string &type, char *buffer, int bufferSize, const Parameters &parameters) {
 	return "Hello World!";
 }
 

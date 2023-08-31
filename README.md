@@ -14,7 +14,6 @@ sudo make install
 
 To use, you need to inherit the following classes.
 
-
 ### For a http web server;
 ```cpp
 // webserver.hpp
@@ -24,7 +23,8 @@ To use, you need to inherit the following classes.
 
 class WebServer : public WebServerHttp {
 	public:
-		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize);
+		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize,
+				const Paramters &params);
 };
 ```
 
@@ -37,13 +37,14 @@ class WebServer : public WebServerHttp {
 
 class WebServer : public WebServerHttps {
 	public:
-		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize);
+		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize,
+				const Paramters &params);
 };
 ```
 
 ### And cpp files
 
-```cpp
+```
 #include "webserver.hpp"
 #include <fstream>
 #include <curl/curl.h>
@@ -55,8 +56,6 @@ std::string WebServer::getContent(std::string &url, std::string &type, char *buf
 		content = open_file("index.html");
 	} else {
 		content = open_file(url.substr(1));
-	} else {
-		content = "!:"; // For error 404
 	}
 
 	return content;
@@ -88,17 +87,8 @@ int main() {
 	// For an https web server
 	server.config_server(8080, "certs/testCA.crt", "certs/testCA.key");
 		
-	server.start();
+	server.start(true);
 
 	return 0;
 }
-```
-
-### How to compile it ?
-
-To compile, you just need link with ```lTWebServer``` and filesystem.
-
-Example:
-```bash
-g++ main.cpp webserver.cpp -o -stdc++fs -lTWebServer -lstdc++fs
 ```

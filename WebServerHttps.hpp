@@ -53,7 +53,8 @@ class WebServerHttps : public WebServerHttp {
 		/// @param content the content to change
 		/// @param setContentType the content type of the answer
 		/// @return void
-		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize);
+		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize,
+				const Parameters &parameters);
 
 		/// @brief init ssl
 		void init_ssl();

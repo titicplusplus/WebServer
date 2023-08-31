@@ -14,6 +14,8 @@
 
 #include <unordered_map>
 
+#define Parameters std::unordered_map<std::string, std::string>
+
 /// @brief Class to manage the Http connection with TCP socket
 /// @author Thibaud VINCENT
 class WebServerHttp {
@@ -35,7 +37,7 @@ class WebServerHttp {
 
 		/// @brief The TCP Main loop, accept connection
 		/// @return void
-		void start();
+		virtual void start(bool activeAsync);
 
 		/// @brief To stop the TCP Main loop when user wants
 		/// @return void
@@ -65,7 +67,7 @@ class WebServerHttp {
 		/// 
 		/// @param &url The url
 		/// @return std::unordered_map<std::string>
-		std::unordered_map<std::string, std::string> get_params(std::string &url);
+		Parameters get_params(std::string &url);
 
 		/// @brief To open or render with jinja a file
 		/// @param filename  the path of the file
@@ -76,7 +78,8 @@ class WebServerHttp {
 
 		/// @brief get the classical answer
 		/// @return std:string
-		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize);
+		virtual std::string getContent(std::string &url, std::string &type, char *buffer, int bufferSize,
+				const Parameters &parameters);
 
 	protected:
 		struct sockaddr_in addr;

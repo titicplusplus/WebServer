@@ -91,11 +91,11 @@ void WebServerHttps::new_http_request(int port, const std::string ipClient) {
 				}
 				logLck.unlock();
 
-				//auto params = get_params( value[1] );
+				auto params = get_params( value[1] );
 
 				//////////////////////////////////
 				
-				content = getContent(value[1], value[0], buffer, valread );//"<h1>Hello, world!</h1>";
+				content = getContent(value[1], value[0], buffer, valread, params);//"<h1>Hello, world!</h1>";
 
 				//////////////////////////////////
 			}
@@ -140,7 +140,8 @@ void WebServerHttps::stop(int signal) {
 	destroy_ssl();
 }
 
-std::string WebServerHttps::getContent(std::string &url, std::string &type, char *buffer, int bufferSize) {
+std::string WebServerHttps::getContent(std::string &url, std::string &type, char *buffer, int bufferSize,
+		const Parameters &parameters) {
 	return "Hello World!";
 }
 
