@@ -55,31 +55,30 @@ int WebServerHttps::load_certificate(std::string certfile, std::string keyfile) 
 void WebServerHttps::new_http_request(int port, const std::string ipClient) {
 	//SSL *cSSL = SSL_new(ctx.get());
 	
-	std::unique_lock<std::mutex> sslLck {sslSecure};
+	//std::unique_lock<std::mutex> sslLck {sslSecure};
 	auto cSSL = std::unique_ptr<SSL, SslDeleter>(SSL_new(ctx.get()));
-	sslLck.unlock();
+	//sslLck.unlock();
 
 	SSL_set_fd(cSSL.get(), port);
 	
 	std::string content { "!:" };
 
-
 	if (SSL_accept(cSSL.get()) == 0) {
 		ERR_print_errors_fp(stderr);
 	} else {
-
 		char buffer[1024] = {0};
 		//int valread = read( port, buffer, 1024);
+
 		int valread = SSL_read( cSSL.get(), buffer, 1024);
 		std::vector<std::string> value;
 
 		if (valread < 0) {
-			content = "Please, use https request";
+			/**content = "Please, use https request";
 
 			std::string rep = "HTTP/1.0 200 OK\r\nContent-Length: " +  
 				std::to_string(content.size()) + "\r\n\r\n" + content;
 
-			write(port, rep.c_str(), rep.size());
+			write(port, rep.c_str(), rep.size());**/
 			return;
 		} else {
 			value = info_request( buffer, valread );
@@ -110,14 +109,13 @@ void WebServerHttps::new_http_request(int port, const std::string ipClient) {
 				std::to_string(content.size()) + "\r\n" + content_type(value[1]) + "\r\n" + content;
 			}
 
-			std::unique_lock<std::mutex> sslLck {sslSecure};
+			//std::unique_lock<std::mutex> sslLck {sslSecure};
 
 			SSL_write(cSSL.get(), rep.c_str(), rep.size());
 
-			sslLck.unlock();
+			//sslLck.unlock();
 		}
 	}
-	
 	//SSL_free(cSSL);
 
 	return;

@@ -97,6 +97,7 @@ void WebServerHttp::start(bool activeAsync = true) {
 						new_http_request(new_socket, ipClient);
 					} catch (const std::exception& e) {
 						std::cerr << "Error during answer process: " << e.what() << std::endl;
+						m_file.setLog(ipClient, e.what());
 					}
 				});
 			} else {
@@ -104,8 +105,10 @@ void WebServerHttp::start(bool activeAsync = true) {
 					new_http_request(new_socket, ipClient);
 				} catch (const std::exception& e) {
 					std::cerr << "Error during answer process: " << e.what() << std::endl;
+					m_file.setLog(ipClient, e.what());
 				}
 			}
+			close(new_socket);
 		}
 	}
 }
@@ -115,10 +118,14 @@ void WebServerHttp::new_http_request(int port, const std::string ipClient) {
 	char buffer[BUFFER_SIZE] = {0};
 	int valread = read(port, buffer, BUFFER_SIZE);
 
-	if (valread == -1)
+	if (valread < 2)
 		return;
 
 	std::vector<std::string> value = info_request( buffer, valread );
+
+	if (value.size() < 2) {
+		//return;
+	}
 	auto params = get_params( value[1] );
 
 	//if (value[1] != "/new")
@@ -269,12 +276,10 @@ std::string WebServerHttp::get_content(char *buffer, size_t size) {
 
 
 std::unordered_map<std::string, std::string> WebServerHttp::get_params(std::string &url) {
-
-	std::cout << "Url " << url << std::endl;
+	std::cout << "url: " << url << std::endl;
 	auto it = url.find("?");
 
 	if (it == std::string::npos) {
-		std::cout << "End" << std::endl;
 		return {};
 	}
 
